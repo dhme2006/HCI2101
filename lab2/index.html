@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لعبة XO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family: Tahoma, Arial;
+  background: linear-gradient(135deg,#1e3c72,#2a5298);
+  color:white;
+  text-align:center;
+  min-height:100vh;
+}
+
+.screen{
+  display:none;
+  padding:30px 15px 120px;
+}
+.active{display:block}
+
+input,button{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+}
+
+button{
+  background:#22c55e;
+  color:black;
+  cursor:pointer;
+  margin:5px;
+}
+button:hover{opacity:0.9}
+
+.board{
+  display:grid;
+  grid-template-columns:repeat(3,100px);
+  gap:10px;
+  justify-content:center;
+  margin:20px auto;
+}
+
+.cell{
+  width:100px;
+  height:100px;
+  background:white;
+  color:black;
+  font-size:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  border-radius:10px;
+}
+
+footer{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#000000aa;
+  padding:10px;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- شاشة البداية -->
+<div id="start" class="screen active">
+  <h1>🎮 لعبة XO</h1>
+
+  <p>اختر عدد اللاعبين:</p>
+  <button onclick="setMode(1)">لاعب واحد</button>
+  <button onclick="setMode(2)">لاعبين</button>
+
+  <div style="margin-top:20px">
+    <input id="p1" placeholder="اسم اللاعب الأول">
+    <br><br>
+    <input id="p2" placeholder="اسم اللاعب الثاني" style="display:none">
+  </div>
+
+  <br>
+  <button onclick="startGame()">ابدأ اللعبة</button>
+</div>
+
+<!-- شاشة اللعبة -->
+<div id="game" class="screen">
+  <h2 id="turnText"></h2>
+
+  <div class="board" id="board"></div>
+
+  <button onclick="resetGame()">إعادة اللعب</button>
+</div>
+
+<!-- الفوتر الإجباري -->
+<footer>
+  <div>
+    <b>Student Name:</b> ABDULRAHMAN NOOR BIN AWADH ALMALKI  
+    (عبدالرحمن نور بن عواض المالكي)
+  </div>
+  <div>
+    <b>Student ID:</b> 446000380
+  </div>
+  <div>
+    <b>Supervised by:</b> Mohammed Ahmed Jabali
+  </div>
+</footer>
+
+<script>
+let mode = 1;
+let players = {X:"", O:""};
+let board = Array(9).fill("");
+let turn = "X";
+
+function setMode(m){
+  mode = m;
+  document.getElementById("p2").style.display =
+    m === 2 ? "inline-block" : "none";
+}
+
+function startGame(){
+  players.X = document.getElementById("p1").value || "اللاعب 1";
+  players.O = mode === 2
+    ? (document.getElementById("p2").value || "اللاعب 2")
+    : "الكمبيوتر";
+
+  document.getElementById("start").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+
+  createBoard();
+  updateTurn();
+}
+
+function createBoard(){
+  const b = document.getElementById("board");
+  b.innerHTML="";
+  board.fill("");
+  turn="X";
+
+  for(let i=0;i<9;i++){
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.onclick=()=>play(i,cell);
+    b.appendChild(cell);
+  }
+}
+
+function play(i,cell){
+  if(board[i] !== "") return;
+
+  board[i]=turn;
+  cell.textContent=turn;
+
+  if(checkWin(turn)){
+    alert("🎉 الفائز: "+players[turn]);
+    resetGame();
+    return;
+  }
+
+  if(board.every(c=>c)){
+    alert("🤝 تعادل");
+    resetGame();
+    return;
+  }
+
+  turn = turn==="X"?"O":"X";
+  updateTurn();
+
+  if(mode===1 && turn==="O"){
+    setTimeout(aiMove,500);
+  }
+}
+
+function aiMove(){
+  let empty = board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+  let i = empty[Math.floor(Math.random()*empty.length)];
+  document.getElementsByClassName("cell")[i].click();
+}
+
+function checkWin(t){
+  const w=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  return w.some(a=>a.every(i=>board[i]===t));
+}
+
+function updateTurn(){
+  document.getElementById("turnText").textContent =
+    "الدور على: "+players[turn]+" ("+turn+")";
+}
+
+function resetGame(){
+  document.getElementById("game").classList.remove("active");
+  document.getElementById("start").classList.add("active");
+}
+</script>
+
+</body>
+</html>
